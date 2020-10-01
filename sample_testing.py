@@ -40,7 +40,8 @@ def create_mnist_spn():
     spn_args.num_gauss = 20      # int(num_leaf_param / num_copies)
 
     spn_args.dist = 'Bernoulli'
-    spn = RAT_SPN.RatSpn(num_classes, region_graph=rg, name="spn", args=spn_args)
+    spn = RAT_SPN.RatSpn(num_classes, region_graph=rg,
+                         name="spn", args=spn_args)
     print("created SPN")
     return spn
 
@@ -77,7 +78,7 @@ def load_binarized_mnist(class_only=None):
         good_idx = np.array(good_idx)
         # Selelct x_train with only good idx
         x_train = x_train[good_idx]
-        
+
     return x_train, y_train, x_test, y_test
 
 
@@ -109,24 +110,24 @@ def tf_test():
     # shape (num_gaus ^ 2, whole scope)
     # num gaus^2 = number of classes (weigths first dimension)
 
-    inputs = np.array([[[0,0,1,0,1,0],
-                       [0,0,0,1,0,0],
-                       [0,0,1,1,1,0],
-                       [0,0,1,1,1,0]]])
+    inputs = np.array([[[0, 0, 1, 0, 1, 0],
+                        [0, 0, 0, 1, 0, 0],
+                        [0, 0, 1, 1, 1, 0],
+                        [0, 0, 1, 1, 1, 0]]])
     # dist = dists.Categorical(probs=[0.1, 0.4, 0.9, 5])
     # shape (4,3)
     # (Number of different distr, number of classes)
     dist = dists.Categorical(logits=np.log([[0.5, 0.1, 0.4],
-                                           [0.1, 0.9, 0.1],
-                                           [0.5, 0.1, 0.4],
-                                           [0.1, 0.9, 0.1]]))
+                                            [0.1, 0.9, 0.1],
+                                            [0.5, 0.1, 0.4],
+                                            [0.1, 0.9, 0.1]]))
 
     # Num weights is arbitrarely chosen...
-    print(np.array([[0.1,0.1,0.1],[0.3,0.3,3]]).shape)
+    print(np.array([[0.1, 0.1, 0.1], [0.3, 0.3, 3]]).shape)
     print(dist)
-    sampled_indices = np.array([[1,2,3,1],
-                                [0,2,1,1],
-                                [2,2,3,0]])
+    sampled_indices = np.array([[1, 2, 3, 1],
+                                [0, 2, 1, 1],
+                                [2, 2, 3, 0]])
 
     sampled_indices = np.array([[1, 2, 3, 1]])
 
@@ -138,7 +139,8 @@ def tf_test():
 
     # shape: 4,2 -> (num_samples, num_different_distr), value is the chosen class index
 
-    case_idx = tf.tile(tf.expand_dims(tf.range(num_samples), -1), [1, num_sums])
+    case_idx = tf.tile(tf.expand_dims(
+        tf.range(num_samples), -1), [1, num_sums])
     # shape: 3,4 -> num_samples, num_different_distr
     # 0,0 is from the first sample and the first distr
     print("case idx:", case_idx)
@@ -148,7 +150,6 @@ def tf_test():
 
     # each element defines a slice of the input
     result = tf.gather_nd(inputs, full_idx)
-
 
     # print(indices)
     sess.run(tf.global_variables_initializer())
@@ -164,7 +165,7 @@ def tf_test():
 def train_spn(spn, sess):
     batch_size = 128
     input_shape = x_shape
-    num_epochs = 50
+    num_epochs = 5  # TODO: change back to 50
 
     # x = np.ones([100] + input_shape)
     # mnist_fake = np.ones([1000] + input_shape)
@@ -242,6 +243,8 @@ def sample_from_save(spn, sess):
     exit()
 
 # sample ...
+
+
 def main():
     # tf_test()
 
@@ -281,7 +284,8 @@ def main():
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.ERROR)
 
-    parser = argparse.ArgumentParser(description="Conditional SPN over latent space z")
+    parser = argparse.ArgumentParser(
+        description="Conditional SPN over latent space z")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Runs training on mininmal settings for debugging")
 
