@@ -1,0 +1,275 @@
+
+
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{authblk}
+\usepackage{setspace}
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{ {./figures/} }
+\usepackage{subcaption}
+\usepackage{amsmath}
+
+
+%%%%%% Bibliography %%%%%%
+% Replace "sample" in the \addbibresource line below with the name of your .bib file.
+\usepackage[style=ieee, 
+citestyle=numeric-comp,
+sorting=none]{biblatex}
+\addbibresource{sample.bib}
+
+%%%%%% Title %%%%%%
+% Full titles can be a maximum of 200 characters, including spaces. 
+% Title Format: Use title case, capitalizing the first letter of each word, except for certain small words, such as articles and short prepositions
+\title{Predicting Pose of Objects Around a Given Agent with a Quantitative Measure of Confidence}
+
+%%%%%% Authors %%%%%%
+% Authors should be listed in order of contribution to the paper, by first name, then middle initial (if any), followed by last name.
+% Authors should be listed in the order in which they will appear in the published version if the manuscript is accepted. 
+% Use an asterisk (*) to identify the corresponding author, and be sure to include that person’s e-mail address. Use symbols (in this order: †, ‡, §, ||, ¶, #, ††, ‡‡, etc.) for author notes, such as present addresses, “These authors contributed equally to this work” notations, and similar information.
+% You can include group authors, but please include a list of the actual authors (the group members) in the Supplementary Materials.
+\author{Rebel Reindeers: Musab Abdullah, Ashray Desai, \\Dristi Patel, Abinith Thallam, Victor Xia}
+
+%%%%%% Date %%%%%%
+% Date is optional
+\date{}
+
+%%%%%% Spacing %%%%%%
+% Use paragraph spacing of 1.5 or 2 (for double spacing, use command \doublespacing)
+\onehalfspacing
+
+\begin{document}
+
+\maketitle
+
+%%%%%% Abstract %%%%%%
+\begin{abstract}
+The goal of this research is to be able to determine the pose of objects around an agent using data from sensors and/or images. An object's pose is its position in 3D space and rotation around the y-axis. We also wanted to compute the uncertainty of pose components. 
+%The abstract should be a single paragraph written in plain language that a general reader can understand. Do not include citations, figures, tables, or undefined abbreviations in the abstract. Any abbreviations that appear in the title should be defined in the abstract. The length should be 200 words and not exceed 300 words, to include: 
+\begin{itemize}
+    \item With a certainty level for the pose of other objects, we can now track people and objects in the real world.
+    \item This would be extremely beneficial for self-driving cars, as the system could understand the 3D relationships among the members and components of the road.
+    \item Results are currently in the works.
+\end{itemize} 
+\end{abstract}
+
+%%%%%% Main Text %%%%%%
+
+\section{Introduction}
+In the recent era of self-driving cars, the ability of an AI to safely maneuver in roads that are potentially full of other cars without collisions or threats to safety is crucial. Pose estimation with certainty and uncertainty levels would be monumental for robotics as it would allow for precise location estimation or tracking human activity and movement. In combination with self-driving cars, this pose estimation could make self-driving cars less risky as they will now have uncertainty levels for the things on the road. We use CARLA and kitti as data sources, and YOLOv4, darknet, and CSPNs are tools that allow us to modify and operate on this data. 
+
+\section{Literature Review}
+\begin{itemize}
+    \item 6D-VNet: End-to-end 6DoF Vehicle Pose Estimation from Monocular RGB Images \\
+This article shows how the researchers developed a framework that detects objects on the road and simultaneously calculates their 3D position and orientation (6DoF pose). It is an extension of Mask R-CNN, an fast object segmentation algorithm. The reason they decided to simultaneously calculate the 6DoF pose was to avoid regressing error from the less important classification and orientation step to the more important translation step as done in current RGB based 6DoF pose estimation systems. However, we also need confidence levels.
+
+    \item http://people.inf.ethz.ch/pomarc/pubs/Hoedlmoser3DIMPVT12.pdf \\
+In order to make precise estimations, the researchers take advantage of the temporal coherence between each frame of the video. They have understood that the way to accurately render the 3D images of the self-driving cars on the road is by matching projected edges with input data and utilizing the Markov Random Field. The performance with these methods with a variety of different cars result in stunning rendering. 
+
+    \item https://justinyuzheng.com/research-6dof/ \\
+Uses a CNN (for bounding boxes) and PnP (Perspective-n-Point; for pose estimation) algorithm to detect a car’s 6DOF pose for the purpose of autonomous racing. From the paper: “This pipeline involves an automatic labeling tool capable of rapidly labeling real world data for training, a single-shot CNN for 3D bounding box estimation, a PnP algorithm for estimating a 6DoF pose, and a ROS node for running this detection onboard a physical vehicle.” The first step in functioning AutoRally platforms (autorally.github.io), “that will use vision for tracking opponents and making control decisions.” Our work is projected to be different in this as we plan not to use the bounding box technique as a first step in pose detection for more accurate 6DOF pose detection.
+
+    \item https://pdfs.semanticscholar.org/4249/47422d63e92ff131c3455ea8ba9011d8f695.pdf \\
+This method of pose estimation and localization uses 1-Point RANSAC EKF (Extended Kalman Filter) framework. Like our planned project, the method involves data from both a sensor and from a camera. Using this data, these researchers’ “estimation framework continually updates an unmanned ground vehicle’s (UGV) 6D pose state and temporary estimates of the extracted visual features’ 3D positions.” (from the paper). In this project, GPS is denied to the UGV, which puts much more pressure on the sensor to keep the vehicle safe.
+
+    \item https://www.mdpi.com/2079-9292/8/1/43/pdf “A Robust Registration Method for Autonomous Driving Pose Estimation in Urban Dynamic Environment Using LiDAR” \\
+ This article demonstrates a registration method for pose estimation in urban environments using LiDAR. The LiDAR is used to calculate the localization of the vehicle based on the information gathered from the point cloud produced by the LiDAR. In this article, an optimized object segmentation method is used that also tries to distinguish moving objects from static objects using an algorithm called RANSAC. This is relevant to our project because we are also trying to implement a LiDAR sensor that is able to tell apart dynamic objects (other vehicles and pedestrians) from static objects (lamps, streetlights, signs, buildings, etc) and classify those objects so we can determine their pose.
+
+    \item https://arxiv.org/pdf/2004.10934.pdf \\
+This article covers the updates to YOLO in YOLOv4. YOLOv4 offers a state-of-the-art object detector which is faster in FPS and more accurate according to COCO than all other available alternative detectors. Most modern detectors are made up of two parts: a backbone which is pre-trained on ImageNet and a head which is used to predict classes and bounding boxes of objects. For YOLOv4, they use CSPDarknet53 as its backbone, SPP (Spatial pyramid pooling in deep convolutional networks for visual recognition), and PAN (Path aggregation network for instance segmentation) as its “neck”, and YOLOv3 as its head. This is very relevant to our project as YOLO is a very fast and efficient object detector, and it might be beneficial to utilize the same if not a similar object detector for our project.
+
+\end{itemize}
+
+% somebody else fill this out with more correct detail
+\section{Methodology}
+YOLOv4 and CSPNs are the best resources for us to achieve this goal. The main shortcoming of YOLOv4 is that it only provides bounding boxes/classification of objects and a percentage confidence level for the classification. We are going to take the output of YOLOv4, format it into something compatible with the CSPN, and feed it into the CSPN as the input. The output of the CSPN will then be confidence levels for the pose of the object. \\
+" - Two branches \\
+- completed YOLO branch that back propagates error \\
+- branch that feeds output (coordinates of bounding boxes) of some stage in YOLO as parameters for CSPN to get confidence interval \\
+- Switch between these branches periodically so weights are updated" \\
+
+\section{Results}
+TODO
+
+\section{Limitations}
+\begin{itemize}
+    \item None of us had powerful enough hardware so we needed to wait for a UT machine before beginning to experiment with our source repos
+    \item Having to depend on a campus-owned computer might cause problems such as: \\
+        - Not having full privieleges causing some obstacles \\
+        - Having to transfer large sets of files between multiple computers in a linear fashion took lots of time
+    \item We will have been able to adapt to the shortcomings of our computers with resources like GitHub, Colab, and UT computers to do all the work virtually.
+\end{itemize}
+
+%%%%% Citations in the text %%%%%%
+% \subsection*{Citations}
+% Citations of references in the text should be identified using numbers in square brackets e.g., ``as discussed by Cui \cite{Cui1}'' or ``as discussed elsewhere \cite{Cui1,Ninomiya1,Li1,Wang1,Yang1}.'' All references should be cited within the text and uncited references will be removed. 
+
+% As an example, this template includes a ``sample.bib'' file containing the references in BibTeX.
+
+% %%%%%% Equations %%%%%%
+% \subsection*{Equations}
+% Equations should be provided in a text format, rather than as an image. Equations should be numbered consecutively, in round brackets, on the right-hand side of the page by using the ``\textbackslash begin\{equation\}'' command. They should be referred to as Equation 1, etc. in the main text.
+
+% \medskip For example, see Equation \ref{eq:1} and Equation \ref{eq:2} below.
+% \begin{equation} \label{eq:1}
+%     a^2 + b^2 = c^2
+% \end{equation}
+% \begin{equation} \label{eq:2}
+% \begin{split}
+% A & = \frac{\pi r^2}{2} \\
+%  & = \frac{1}{2} \pi r^2
+% \end{split}
+% \end{equation}
+
+% %%%%%% Figures %%%%%%
+% \subsection*{Figures}
+% Figures should be called out within the text and numbered in the order of their citation in the text. Every figure must have a descriptive title beginning with ``Figure [Number] …'' All figure titles should be either a phrase or a sentence; do not mix the two styles. See Figure \ref{fig:1} for example.
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=0.5\textwidth]{fig 1}
+%     \caption{This is an example figure.}
+%     \label{fig:1}
+% \end{figure}
+
+% Figures should be displayed on a white background. When preparing figures, consider that they can occupy either a single column (half page width) or two columns (full page width), and should be sized accordingly.
+
+% If a figure consists of multiple panels, they should be ordered logically and labelled with lower case roman letters (i.e., a, b, c, etc.). All labels should be explained in the legend. See Figure \ref{fig:2} for example.
+
+% Upon acceptance, authors will be asked to provide the figures as separate electronic files. At that stage, figures should be supplied in either vector art formats (PS, EPS, FIG, AI, Visio, WMF, EMF, Word, Excel, PowerPoint, OPJ, CDR, or PDF) or bitmap formats (Photoshop, TIFF, GIF, JPEG, PNG, BMP, etc.). Bitmap (BMP) images should be of at least 300 dpi resolution, unless due to the limited resolution of a scientific instrument. If a bitmap image has labels, the image and labels should be embedded in separate layers.
+% \begin{figure}[h]
+%     \centering
+%     \begin{subfigure}{0.4\textwidth}
+%         \includegraphics[width=0.9\textwidth, height=2in]{fig 1}
+%         \caption{\label{fig:2a}}
+%     \end{subfigure}
+%     \begin{subfigure}{0.4\textwidth}
+%         \includegraphics[width=0.9\textwidth, height=2in]{fig 2}
+%         \caption{\label{fig:2b}}
+%     \end{subfigure}
+%     \caption{This is an example of a figure consisting of multiple panels.     (\subref{fig:2a}) This is the first panel. (\subref{fig:2b}) This is the second panel.}
+%     \label{fig:2}
+% \end{figure}
+
+% %%%%%% Tables %%%%%%
+% \subsection*{Tables}
+% Tables should supplement, not duplicate, the text. They should be called out consecutively within the text and numbered in the order of their citation in the text. 
+
+% Every table must have a descriptive title beginning with ``Table [Number] …'' as noted in Table \ref{tab:1}. If numerical measurements are given, the units should be included in the column heading. Every vertical column should have a heading, followed by a unit of measure (if any) in parentheses. Units should not change within a column. Vertical rules should not be used. 
+
+% Centered headings of the body of the table can be used to break the entries into groups. Do not use footnotes in column heads; include any such details in sentence form in the table legend. Footnotes should contain information relevant to specific cells of the table; use the following symbols in order, as needed: $*, \dag, \ddag, \S, \|, \P, \#, **, \dag\dag$, etc.
+
+% \begin{table}[b]
+%     \caption{This is an example table.}    
+%     \centering
+%     \begin{tabular}{ccc}
+%             \hline
+%             Column 1 & Column 2 & Column 3 \\  
+%             \hline
+%             Cell 1 & Cell 2 & Cell 3\\ 
+%             Cell 4 & Cell 5 & Cell 6 \\
+%             \hline
+%             \end{tabular}
+
+%     \label{tab:1}
+% \end{table}
+
+% \section{Results}
+% The results should describe the experiments performed and the findings observed. The results section should be divided into subsections to delineate different experimental themes. 
+% \begin{itemize}
+%     \item All data should be presented in the Results. No data should be presented for the first time in the Discussion. Data (such as from Western blots) should be appropriately quantified.
+%     \item Subheadings must be either all complete sentences or all phrases. They should be brief, ideally less than 10 words. Subheadings should not end in a period. Your paper may have as many subheadings as are necessary.
+%     \item Figures and tables must be called out in numerical order. For example, the first mention of any panel of Fig. 3 cannot precede the first mention of all panels of Fig. 2. The supplementary figures (for example, fig. S1) and tables (table S1) must also be called out in numerical order. 
+% \end{itemize}
+
+% \section{Discussion}
+% Include a Discussion that summarizes (but does not merely repeat) your conclusions and elaborates on their implications. There should be a paragraph outlining the limitations of your results and interpretation, as well as a discussion of the steps that need to be taken for the findings to be applied. Please avoid claims of priority. 
+
+% \section{Materials and Methods}
+% The materials and methods section should provide sufficient information to allow replication of the results. This section should be broken up by subheadings. Under exceptional circumstances, when a particularly lengthy description is required, a portion of the materials and methods can be included in the Supplementary Materials. 
+
+% \subsection{Experimental Design}
+% Begin with a section titled Experimental Design describing the objectives and design of the study as well as prespecified components. 
+
+% \subsection{Statistical Analysis}
+% If applicable, include a section titled Statistical Analysis that fully describes the statistical methods with enough detail to enable a knowledgeable reader with access to the original data to verify the results. The values for N, P, and the specific statistical test performed for each experiment should be included in the appropriate figure legend or main text. 
+
+% For investigations on humans, a statement must be including indicating that informed consent was obtained after the nature and possible consequences of the study was explained.
+
+% For authors using experimental animals, a statement must be included indicating that the animals’ care was in accordance with institutional guidelines.
+
+% \section*{Acknowledgments}
+% Anyone who made a contribution to the research or manuscript, but who is not a listed author, should be acknowledged (with their permission). Types of acknowledgements include:
+
+% \subsection*{General} 
+% Thank others for any contributions, whether it be direct technical help or indirect assistance 
+
+% \subsection*{Author Contributions} 
+% Describe contributions of each author to the paper, using the first initial and full last name. 
+
+% \medskip Examples:
+
+% ``S. Zhang conceived the idea and designed the experiments.''
+
+% ``E. F. Mustermann and J. F. Smith conducted the experiments.''
+
+% ``All authors contributed equally to the writing of the manuscript.''
+
+% \subsection*{Funding}
+% Name financially supporting bodies (written out in full), followed by the funding awardee and associated grant numbers (if applicable) in square brackets. 
+
+% \medskip Example: 
+
+% ``This work was supported by the Engineering and Physical Sciences Research Council [grant numbers xxxx, yyyy]; the National Science Foundation [grant number zzzz]; and a Leverhulme Trust Research Project Grant.'' 
+
+% \medskip
+% If the research did not receive specific funding, but was performed as part of the employment of the authors, please name this employer. If the funder was involved in the manuscript writing, editing, approval, or decision to publish, please declare this.
+
+% \subsection*{Conflicts of Interest}
+% Conflicts of interest (COIs, also known as ``competing interests'') occur when issues outside research could be reasonably perceived to affect the neutrality or objectivity of the work or its assessment. 
+
+% Authors must declare all potential interests – whether or not they actually had an influence – in a ‘Conflicts of Interest’ section, which should explain why the interest may be a conflict. Authors must declare current or recent funding (including for Article Processing Charges) and other payments, goods or services that might influence the work. All funding, whether a conflict or not, must be declared in a ``Funding Statement.'' The involvement of anyone other than the authors who 1) has an interest in the outcome of the work; 2) is affiliated to an organization with such an interest; or 3) was employed or paid by a funder, in the commissioning, conception, planning, design, conduct, or analysis of the work, the preparation or editing of the manuscript, or the decision to publish must be declared.
+
+% If there are none, the authors should state ``The author(s) declare(s) that there is no conflict of interest regarding the publication of this article.'' Submitting authors are responsible for coauthors declaring their interests. Declared conflicts of interest will be considered by the editor and reviewers and included in the published article.
+
+% \subsection*{Data Availability}
+% A data availability statement is compulsory for all research articles. This statement describes whether and how others can access the data supporting the findings of the paper, including 1) what the nature of the data is, 2) where the data can be accessed, and 3) any restrictions on data access and why.
+
+% If data are in an archive, include the accession number or a placeholder for it. Also include any materials that must be obtained through a Material Transfer Agreements (MTA). 
+
+% \section*{Supplementary Materials}
+% Describe any supplementary materials submitted with the manuscript (e.g., audio files, video clips or datasets). 
+
+% Please group supplementary materials in the following order: materials and methods, figures, tables, and other files (such as movies, data, interactive images, or database files). 
+
+% \medskip Example:
+% Fig. S1. Title of the first supplementary figure.
+
+% Fig. S2. Title of the second supplementary figure.
+
+% Table S1. Title of the first supplementary table.
+
+% Data file S1. Title of the first supplementary data file.
+
+% Movie S1. Title of the first supplementary movie.
+
+% \medskip
+% Be sure to submit all supplementary materials with the manuscript and remember to reference the supplementary materials at appropriate points within the manuscript. We recommend citing specific items, rather than referring to the supplementary materials in general, for example: ``See Figures S1-S10 in the Supplementary Material for comprehensive image analysis.''
+
+% A link to access the supplementary materials will be provided in the published article.
+
+% Supplementary Materials may include additional author notes—for example, a list of group authors.
+
+% \section*{Guidelines for References}
+% Authors are responsible for ensuring that the information in each reference is complete and accurate. All data must be cited and references to ``data not shown'' or citations to unpublished results are permitted.
+
+% All references should be cited within the text and uncited references will be removed.
+
+% There is only one reference list for all sources cited in the main text, figure and table legends, and Supplementary Materials. Do not include a second reference list in the Supplementary Materials section. References cited only in the Supplementary Materials section are not counted toward length guidelines.
+
+% Please do not include any extraneous language such as explanatory notes as part of a reference to a given source. The journal prefers that manuscripts do not include end notes; if information is important enough to include, please put into main text.  If you need to include notes, please explain why they are needed in your cover letter to the editor.
+
+% DOIs, if available, should be included for each reference.
+
+% \printbibliography
+
+\end{document}
